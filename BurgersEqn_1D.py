@@ -1,6 +1,7 @@
 
 """
-@author: Ameya Jagtap
+@author: Dr. Ameya D. Jagtap, Brown University
+ameya_jagtap@brown.edu
 """
 
 

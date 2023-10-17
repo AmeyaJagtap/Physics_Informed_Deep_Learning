@@ -3,9 +3,6 @@
 @author: Ameya Jagtap
 """
 
-# import sys
-# sys.path.insert(0, '../../Utilities/')
-
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior() 
 import numpy as np
@@ -14,11 +11,7 @@ import matplotlib.pyplot as plt
 import scipy.io
 from scipy.interpolate import griddata
 from pyDOE import lhs
-# from plotting import newfig, savefig
-#from mpl_toolkits.mplot3d import Axes3D
 import time
-# import matplotlib.gridspec as gridspec
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 np.random.seed(1234)
 tf.set_random_seed(1234)
@@ -42,8 +35,9 @@ class PhysicsInformedNN:
         self.nu = nu
         
         # Initialize NNs
+        #self.weights, self.biases, self.a = self.initialize_NN(layers)
         self.weights, self.biases, self.a = self.initialize_NN(layers)
-        
+
         # tf placeholders and graph
         self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
                                                      log_device_placement=True))
@@ -82,8 +76,8 @@ class PhysicsInformedNN:
             weights.append(W)
             biases.append(b)
         
-        a = tf.Variable(0.1, dtype=tf.float32)
-        return weights, biases, a
+        #a = tf.Variable(0.1, dtype=tf.float32)
+        return weights, biases#, a
         
     def xavier_init(self, size):
         in_dim = size[0]
@@ -91,21 +85,21 @@ class PhysicsInformedNN:
         xavier_stddev = np.sqrt(2/(in_dim + out_dim))
         return tf.Variable(tf.truncated_normal([in_dim, out_dim], stddev=xavier_stddev), dtype=tf.float32)
     
-    def neural_net(self, X, weights, biases, a):
+    def neural_net(self, X, weights, biases):#, a):
         num_layers = len(weights) + 1
         
         H = 2.0*(X - self.lb)/(self.ub - self.lb) - 1.0
         for l in range(0,num_layers-2):
             W = weights[l]
             b = biases[l]
-            H = tf.tanh(10*a*tf.add(tf.matmul(H, W), b))
+            H = tf.tanh(tf.add(tf.matmul(H, W), b))# 10*a*
         W = weights[-1]
         b = biases[-1]
         Y = tf.add(tf.matmul(H, W), b)
         return Y
             
     def net_u(self, x, t):
-        u = self.neural_net(tf.concat([x,t],1), self.weights, self.biases, self.a)
+        u = self.neural_net(tf.concat([x,t],1), self.weights, self.biases)#, self.a)
         return u
     
     def net_f(self, x,t):
@@ -121,7 +115,7 @@ class PhysicsInformedNN:
     def train(self,nIter):
 
         MSE_history=[]
-        a_history=[]
+        #a_history=[]
 
         for it in range(nIter):
             
@@ -133,12 +127,14 @@ class PhysicsInformedNN:
             if it %1 == 0:
                 #elapsed = time.time() - start_time
                 loss_value = self.sess.run(self.loss, tf_dict)
-                a_value    = self.sess.run(self.a, tf_dict)
-                print('It: %d, Loss: %.3e, a_value: %.3e' % 
-                      (it, loss_value, a_value))
+                #a_value    = self.sess.run(self.a, tf_dict)
+                #print('It: %d, Loss: %.3e, a_value: %.3e' % 
+                #      (it, loss_value, a_value))
+                print('It: %d, Loss: %.3e' % 
+                      (it, loss_value))
                 #start_time = time.time()
                 MSE_history.append(loss_value)
-                a_history.append(a_value)
+                #a_history.append(a_value)
 
       
         return MSE_history
@@ -244,64 +240,4 @@ if __name__ == "__main__":
     plt.ylabel('T', fontsize=14)
     cbar = fig.colorbar(CS)
     fig.tight_layout()
-    
-    
-    
-# #     fig, ax = newfig(1.0, 1.1)
-#     # plt.plot(dw_const1_val,  'r--', linewidth = 1,label='PDE residual') 
-#     plt.plot(range(0,Iter+1,1), dw_const2_val,  'b-', linewidth = 1)
-#     plt.xlabel('$\#$ iterations', fontsize=14)
-#     plt.ylabel('Dynamic weight', fontsize=14)
-#     # ax.legend(loc='upper right')
-# #    plt.yscale('log')
-#     savefig('H2D_DW') 
 
-#     ######################################################################
-#     fig, ax = newfig(1.0, 1.1)
-#     h1 = ax.imshow(U_pred.T, interpolation='nearest', cmap='seismic',#'YlGnBu',
-#                   extent=[y.min(), y.max(), x.min(), x.max()], 
-#                   origin='lower', aspect='auto')
-#     divider = make_axes_locatable(ax)
-#     cax = divider.append_axes("right", size="5%", pad=0.05)
-#     fig.colorbar(h1, cax=cax)
-        
-#     ax.set_xlabel('$x$', fontsize=14)
-#     ax.set_ylabel('$y$', fontsize=14)
-#     #ax.legend(frameon=False, loc = 'best')
-#     ax.set_title('Predicted', fontsize = 14)
-#     ax.axis('square')
-    
-#     savefig('Helmholtz2D_pred') 
-#     ###################################################################### 
-#     fig, ax = newfig(1.0, 1.1)
-#     h2 = ax.imshow(Exact.T, interpolation='nearest', cmap='seismic',
-#                   extent=[y.min(), y.max(), x.min(), x.max()], 
-#                   origin='lower', aspect='auto')
-#     divider = make_axes_locatable(ax)
-#     cax = divider.append_axes("right", size="5%", pad=0.05)
-#     fig.colorbar(h2, cax=cax)
-        
-#     ax.set_xlabel('$x$', fontsize=14)
-#     ax.set_ylabel('$y$', fontsize=14)
-#     #ax.legend(frameon=False, loc = 'best')
-#     ax.set_title('Exact', fontsize = 14)
-#     ax.axis('square')
-    
-#     savefig('Helmholtz_Exact') 
-#     #% ###################################################################### 
-#     fig, ax = newfig(1.0, 1.1)
-#     h2 = ax.imshow(abs(Exact.T-U_pred.T), interpolation='nearest', cmap='seismic',
-#                   extent=[y.min(), y.max(), x.min(), x.max()], 
-#                   origin='lower', aspect='auto')
-#     divider = make_axes_locatable(ax)
-#     cax = divider.append_axes("right", size="5%", pad=0.05)
-#     fig.colorbar(h2, cax=cax)
-        
-#     ax.set_xlabel('$x$', fontsize=14)
-#     ax.set_ylabel('$y$', fontsize=14)
-#     #ax.legend(frameon=False, loc = 'best')
-#     ax.set_title('Abs. point-wise error', fontsize = 14)
-#     ax.axis('square')
-    
-#     savefig('Helmholtz_Exact') 
-    

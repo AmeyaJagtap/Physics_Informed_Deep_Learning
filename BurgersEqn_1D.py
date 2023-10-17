@@ -3,6 +3,7 @@
 @author: Ameya Jagtap
 """
 
+
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior() 
 import numpy as np
@@ -12,6 +13,7 @@ import scipy.io
 from scipy.interpolate import griddata
 from pyDOE import lhs
 import time
+
 
 np.random.seed(1234)
 tf.set_random_seed(1234)
@@ -35,8 +37,8 @@ class PhysicsInformedNN:
         self.nu = nu
         
         # Initialize NNs
-        #self.weights, self.biases, self.a = self.initialize_NN(layers)
         self.weights, self.biases = self.initialize_NN(layers)
+        # self.weights, self.biases, self.a = self.initialize_NN(layers)
 
         # tf placeholders and graph
         self.sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True,
@@ -92,7 +94,7 @@ class PhysicsInformedNN:
         for l in range(0,num_layers-2):
             W = weights[l]
             b = biases[l]
-            H = tf.tanh(tf.add(tf.matmul(H, W), b))# 10*a*
+            H = tf.tanh(tf.add(tf.matmul(H, W), b)) #10*a*
         W = weights[-1]
         b = biases[-1]
         Y = tf.add(tf.matmul(H, W), b)
@@ -129,7 +131,7 @@ class PhysicsInformedNN:
                 loss_value = self.sess.run(self.loss, tf_dict)
                 #a_value    = self.sess.run(self.a, tf_dict)
                 #print('It: %d, Loss: %.3e, a_value: %.3e' % 
-                #      (it, loss_value, a_value))
+                 #     (it, loss_value, a_value))
                 print('It: %d, Loss: %.3e' % 
                       (it, loss_value))
                 #start_time = time.time()
@@ -148,6 +150,7 @@ class PhysicsInformedNN:
         return u_star, f_star
     
 if __name__ == "__main__": 
+    
     nu = 0.01/np.pi
     noise = 0.0        
 
@@ -155,7 +158,7 @@ if __name__ == "__main__":
     N_f = 8000
     layers = [2, 20, 20, 20, 20, 20, 20, 1]
     
-    data = scipy.io.loadmat('DATA/burgers_shock.mat')
+    data = scipy.io.loadmat('burgers_shock.mat')
     
     t = data['t'].flatten()[:,None]
     x = data['x'].flatten()[:,None]
@@ -189,7 +192,7 @@ if __name__ == "__main__":
     model = PhysicsInformedNN(X_u_train, u_train, X_f_train, layers, lb, ub, nu)
     
     start_time = time.time()                
-    MSE_hist = model.train(200)
+    MSE_hist = model.train(1000)
     elapsed = time.time() - start_time                
     print('Training time: %.4f' % (elapsed))
     
@@ -240,4 +243,4 @@ if __name__ == "__main__":
     plt.ylabel('T', fontsize=14)
     cbar = fig.colorbar(CS)
     fig.tight_layout()
-
+    
